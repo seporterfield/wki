@@ -178,29 +178,34 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		default:
 			m.textInput, cmd = m.textInput.Update(msg)
-			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
+			return m, tea.Batch(cmd, m.queryArticlesCmd())
 		}
 	case apiResponseMsg:
+		if msg.query != m.textInput.Value() {
+			break
+		}
 		m.Articles = msg.articles
 	}
 	if strings.TrimSpace(m.textInput.Value()) == "" {
 		m.Articles = pkg.DefaultArticleMap
 	}
-	return m, nil
+	return m, cmd
 }
 
-func (m model) queryArticlesCmd(query string) tea.Cmd {
+func (m model) queryArticlesCmd() tea.Cmd {
+	query := m.textInput.Value()
 	return func() tea.Msg {
 		articles, err := m.client.QueryArticles(query)
 		if err != nil {
 			m.info = err.Error()
 		}
-		return apiResponseMsg{articles: articles}
+		return apiResponseMsg{articles: articles, query: query}
 	}
 }
 
 type apiResponseMsg struct {
 	articles map[int]pkg.Article
+	query    string
 }
 
 type Page struct {
