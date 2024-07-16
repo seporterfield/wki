@@ -51,7 +51,7 @@ func initialModel(topic string) model {
 	ti.CharLimit = 156
 	ti.Width = 20
 
-	client, err := pkg.NewClient("en", "wikipedia.org/wiki", "wikipedia.org/w/api.php?")
+	client, err := pkg.NewClient("en", pkg.DefaultWikiUrl, pkg.DefaultApiUrl)
 	if err != nil {
 		fmt.Println("fatal:", err)
 		os.Exit(1)

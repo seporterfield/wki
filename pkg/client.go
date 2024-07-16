@@ -15,14 +15,8 @@ type Client struct {
 	ApiUrl  string
 }
 
-var wikipediaLangs = map[string]bool{
-	"en": true,
-	"de": true,
-	"fr": true,
-}
-
 func NewClient(lang string, unformattedWikiUrl string, unformattedApiUrl string) (*Client, error) {
-	if _, ok := wikipediaLangs[lang]; !ok {
+	if _, ok := WikipediaLangs[lang]; !ok {
 		return nil, fmt.Errorf("wikipedia language %s does not exist", lang)
 	}
 	client := &Client{
