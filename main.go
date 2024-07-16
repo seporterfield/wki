@@ -42,13 +42,20 @@ type model struct {
 }
 
 func initialModel(topic string) model {
+	if topic == "" {
+		topic = "Giraffes"
+	}
 	ti := textinput.New()
 	ti.Placeholder = topic
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 20
 
-	client, _ := pkg.NewClient("en", "wikipedia.org/w/api.php?")
+	client, err := pkg.NewClient("en", "wikipedia.org/wiki", "wikipedia.org/w/api.php?")
+	if err != nil {
+		fmt.Println("fatal:", err)
+		os.Exit(1)
+	}
 
 	return model{
 		pageName:  "search",
@@ -88,10 +95,10 @@ func ArticleUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
-		case "left", "h":
+		case tea.KeyLeft:
 			m.pageName = "search"
 		}
 	}
@@ -132,37 +139,53 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 
 		// Cool, what was the actual key pressed?
-		switch msg.String() {
+		switch msg.Type {
 
 		// These keys should exit the program.
-		case "ctrl+c", "esc":
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 
 		// The "up" and "k" keys move the cursor up
-		case "up":
+		case tea.KeyUp:
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
 		// The "down" and "j" keys move the cursor down
-		case "down":
+		case tea.KeyDown:
 			if m.cursor < len(m.Articles)-1 {
 				m.cursor++
 			}
 
-		case "enter", "right":
+		case tea.KeyEnter:
+			///if (k == "right") && () {
+
+			//}
 			article := m.Articles[m.cursor]
 			m.client.LoadArticle(article)
 			m.pageName = "article"
 			m.shownArticle = article.Title
-
+		default:
+			m.textInput, cmd = m.textInput.Update(msg)
+			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
 		}
+	case apiResponseMsg:
+		m.Articles = msg.articles
 	}
+	return m, nil
+	//m.textInput, cmd = m.textInput.Update(msg)
+	//return m, cmd
+}
 
-	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
-	m.textInput, cmd = m.textInput.Update(msg)
-	return m, cmd
+func (m model) queryArticlesCmd(query string) tea.Cmd {
+	return func() tea.Msg {
+		articles := m.client.QueryArticles(query)
+		return apiResponseMsg{articles: articles}
+	}
+}
+
+type apiResponseMsg struct {
+	articles map[int]pkg.Article
 }
 
 type Page struct {
