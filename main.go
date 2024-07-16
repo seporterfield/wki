@@ -62,11 +62,9 @@ func initialModel(topic string) model {
 		pageName:  "search",
 		client:    client,
 		textInput: ti,
-		Articles: map[int]pkg.Article{
-			0: {Title: "...", Description: "... waiting", Content: "", Url: ""},
-			1: {Title: "...", Description: "... waiting", Content: "", Url: ""}},
-		content: "Waiting for content...",
-		ready:   false,
+		Articles:  pkg.DefaultArticleMap,
+		content:   "Waiting for content...",
+		ready:     false,
 	}
 }
 
@@ -169,13 +167,13 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.shownArticle = article.Title
 		default:
 			m.textInput, cmd = m.textInput.Update(msg)
-			// TODO: Sort out buggy refresh/overwrite issue
-			// Removing the queryArticlesCmd from the batch
-			// fixes this but removes our functionality.
 			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
 		}
 	case apiResponseMsg:
 		m.Articles = msg.articles
+	}
+	if strings.TrimSpace(m.textInput.Value()) == "" {
+		m.Articles = pkg.DefaultArticleMap
 	}
 	return m, nil
 }
