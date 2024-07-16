@@ -46,6 +46,7 @@ func initialModel(topic string) model {
 		search:          topic,
 		displayArticles: map[int]string{0: "Lions", 1: "India", 2: "Submarines", 3: "Turtles", 4: "Canada", 5: "Go_(programming_language)"}, //make(map[int]string)
 		content:         "blahblah\nblah\nblah\nblah\nblah\nb\nl\na\nh\nblah\nblah\n...\nblah",
+		ready:           false,
 	}
 }
 
@@ -84,6 +85,7 @@ func ArticleUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
+		fmt.Println("WHERE YOU AT???")
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
 		verticalMarginHeight := headerHeight + footerHeight
@@ -146,6 +148,9 @@ func SearchView(m model) string {
 }
 
 func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmds []tea.Cmd
+	)
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -173,6 +178,40 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", "right", "l":
 			m.pageName = "article"
 			m.shownArticle = m.displayArticles[m.cursor]
+		}
+	case tea.WindowSizeMsg:
+		headerHeight := lipgloss.Height(m.headerView())
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			// Since this program is using the full size of the viewport we
+			// need to wait until we've received the window dimensions before
+			// we can initialize the viewport. The initial dimensions come in
+			// quickly, though asynchronously, which is why we wait for them
+			// here.
+			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
+			m.viewport.YPosition = headerHeight
+			m.viewport.HighPerformanceRendering = useHighPerformanceRenderer
+			m.viewport.SetContent(m.content)
+			m.ready = true
+
+			// This is only necessary for high performance rendering, which in
+			// most cases you won't need.
+			//
+			// Render the viewport one line below the header.
+			m.viewport.YPosition = headerHeight + 1
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height - verticalMarginHeight
+		}
+
+		if useHighPerformanceRenderer {
+			// Render (or re-render) the whole viewport. Necessary both to
+			// initialize the viewport and when the window is resized.
+			//
+			// This is needed for high-performance rendering only.
+			cmds = append(cmds, viewport.Sync(m.viewport))
 		}
 	}
 
