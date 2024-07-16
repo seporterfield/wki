@@ -34,6 +34,7 @@ type model struct {
 	textInput textinput.Model
 	Articles  map[int]pkg.Article
 	cursor    int
+	info      string
 	// Article view
 	shownArticle string
 	viewport     viewport.Model
@@ -126,6 +127,7 @@ func SearchView(m model) string {
 
 	// The footer
 	s += "\nPress esc to quit. Arrow keys to navigate.\n"
+	s += m.info
 
 	// Send the UI for rendering
 	return s
@@ -179,7 +181,10 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) queryArticlesCmd(query string) tea.Cmd {
 	return func() tea.Msg {
-		articles := m.client.QueryArticles(query)
+		articles, err := m.client.QueryArticles(query)
+		if err != nil {
+			m.info = err.Error()
+		}
 		return apiResponseMsg{articles: articles}
 	}
 }

@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,9 +28,9 @@ func NewClient(lang string, unformattedWikiUrl string, unformattedApiUrl string)
 	return client, nil
 }
 
-func (c *Client) QueryArticles(queryText string) map[int]Article {
+func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 	if strings.TrimSpace(queryText) == "" {
-		return nil
+		return nil, nil
 	}
 
 	params := url.Values{}
@@ -45,28 +46,26 @@ func (c *Client) QueryArticles(queryText string) map[int]Article {
 
 	resp, err := http.Get(apiUrl)
 	if err != nil {
-		fmt.Println("Error fetching data from Wikipedia API:", err)
-		return nil
+		return nil, errors.New("couldn't fetch data from Wikipedia API")
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return nil
+		return nil, errors.New("couldn't read response body")
+
 	}
 
 	var result map[string]interface{}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		fmt.Println("Error decoding JSON response:", err)
-		return nil
+		return nil, errors.New("couldn't decode JSON response")
+
 	}
 
 	searchResults, ok := result["query"].(map[string]interface{})["search"].([]interface{})
 	if !ok || len(searchResults) == 0 {
-		fmt.Println("No search results found.")
-		return nil
+		return nil, nil
 	}
 
 	articles := make(map[int]Article)
@@ -81,7 +80,7 @@ func (c *Client) QueryArticles(queryText string) map[int]Article {
 			Url:         fmt.Sprintf("%s/%s", c.WikiUrl, strings.ReplaceAll(title, " ", "_")),
 		}
 	}
-	return articles
+	return articles, nil
 }
 
 func (c *Client) LoadArticle(article Article) {
