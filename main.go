@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -25,12 +26,19 @@ var (
 	}()
 )
 
+type Article struct {
+	title       string
+	description string
+	content     string
+	url         string
+}
+
 type model struct {
 	pageName string
 	// Used in search view
-	search          string
-	displayArticles map[int]string
-	cursor          int
+	textInput textinput.Model
+	Articles  map[int]Article
+	cursor    int
 	// Article view
 	shownArticle string
 	viewport     viewport.Model
@@ -39,12 +47,18 @@ type model struct {
 }
 
 func initialModel(topic string) model {
+	ti := textinput.New()
+	ti.Placeholder = topic
+	ti.Focus()
+	ti.CharLimit = 156
+	ti.Width = 20
+
 	return model{
-		pageName:        "search",
-		search:          topic,
-		displayArticles: map[int]string{0: "..."},
-		content:         "Waiting for content...",
-		ready:           false,
+		pageName:  "search",
+		textInput: ti,
+		Articles:  map[int]Article{0: {"...", "... waiting", "", ""}, 1: {"...", "... waiting", "", ""}},
+		content:   "Waiting for content...",
+		ready:     false,
 	}
 }
 
@@ -91,24 +105,27 @@ func ArticleUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func SearchView(m model) string {
 	s := "wki - Search Wikipedia\n\n"
-	for i := 0; i < len(m.displayArticles); i++ {
+	s += m.textInput.View()
+	s += "\n\n"
+	for i := 0; i < len(m.Articles); i++ {
 
 		cursor := " "
 		if m.cursor == i {
-			cursor = ">"
+			cursor = "*"
 		}
 		// Render the row
-		s += fmt.Sprintf("%s [%s] \n", cursor, m.displayArticles[i])
+		s += fmt.Sprintf("%s [%s] — %s \n", cursor, m.Articles[i].title, m.Articles[i].description)
 	}
 
 	// The footer
-	s += "\nPress esc to quit.\n"
+	s += "\nPress esc to quit. Arrow keys to navigate.\n"
 
 	// Send the UI for rendering
 	return s
 }
 
 func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -122,26 +139,27 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		// The "up" and "k" keys move the cursor up
-		case "up", "k":
+		case "up":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
 		// The "down" and "j" keys move the cursor down
-		case "down", "j":
-			if m.cursor < len(m.displayArticles)-1 {
+		case "down":
+			if m.cursor < len(m.Articles)-1 {
 				m.cursor++
 			}
 
-		case "enter", "right", "l":
+		case "enter", "right":
 			m.pageName = "article"
-			m.shownArticle = m.displayArticles[m.cursor]
+			m.shownArticle = m.Articles[m.cursor].title
 		}
 	}
 
 	// Return the updated model to the Bubble Tea runtime for processing.
 	// Note that we're not returning a command.
-	return m, nil
+	m.textInput, cmd = m.textInput.Update(msg)
+	return m, cmd
 }
 
 type Page struct {
@@ -155,8 +173,7 @@ var pages = map[string]Page{
 }
 
 func (m model) Init() tea.Cmd {
-	// Just return `nil`, which means "no I/O right now, please."
-	return nil
+	return textinput.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
