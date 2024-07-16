@@ -291,6 +291,7 @@ func main() {
 	if *help {
 		fmt.Println(ExtendedUsage)
 		flag.Usage()
+		os.Exit(0)
 	}
 	if flag.NArg() > 0 {
 		fmt.Println(ExtendedUsage)
