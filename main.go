@@ -49,7 +49,7 @@ func initialModel(topic string) model {
 }
 
 func (m model) headerView() string {
-	title := titleStyle.Render("Mr. Pager")
+	title := titleStyle.Render(fmt.Sprintf("wki - %s", m.shownArticle))
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
