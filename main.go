@@ -160,23 +160,24 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyEnter:
-			///if (k == "right") && () {
-
-			//}
+			// TODO: on right-key press if we're at the last
+			// character of the input we should go to the
+			// article view.
 			article := m.Articles[m.cursor]
 			m.client.LoadArticle(article)
 			m.pageName = "article"
 			m.shownArticle = article.Title
 		default:
 			m.textInput, cmd = m.textInput.Update(msg)
+			// TODO: Sort out buggy refresh/overwrite issue
+			// Removing the queryArticlesCmd from the batch
+			// fixes this but removes our functionality.
 			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
 		}
 	case apiResponseMsg:
 		m.Articles = msg.articles
 	}
 	return m, nil
-	//m.textInput, cmd = m.textInput.Update(msg)
-	//return m, cmd
 }
 
 func (m model) queryArticlesCmd(query string) tea.Cmd {
