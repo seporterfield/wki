@@ -13,20 +13,6 @@ import (
 	"github.com/seporterfield/wki/pkg"
 )
 
-var (
-	titleStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Right = "├"
-		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
-	}()
-
-	infoStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Left = "┤"
-		return titleStyle.BorderStyle(b)
-	}()
-)
-
 type model struct {
 	pageName string
 	client   *pkg.Client
@@ -67,6 +53,20 @@ func initialModel(topic string) model {
 		ready:     false,
 	}
 }
+
+var (
+	titleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
+
+	infoStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Left = "┤"
+		return titleStyle.BorderStyle(b)
+	}()
+)
 
 func (m model) headerView() string {
 	title := titleStyle.Render(fmt.Sprintf("wki - %s", m.shownArticle))
@@ -133,6 +133,7 @@ func SearchView(m model) string {
 
 func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	m.info = ""
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -162,9 +163,16 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			// character of the input we should go to the
 			// article view.
 			article := m.Articles[m.cursor]
-			m.client.LoadArticle(article)
+			newArticle, err := m.client.LoadArticle(article)
+			if err != nil {
+				m.info = err.Error()
+				break
+			}
+			m.Articles[m.cursor] = newArticle
 			m.pageName = "article"
 			m.shownArticle = article.Title
+			m.content = newArticle.Content
+			m.viewport.SetContent(m.content)
 		default:
 			m.textInput, cmd = m.textInput.Update(msg)
 			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
