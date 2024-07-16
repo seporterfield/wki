@@ -133,11 +133,11 @@ func SearchView(m model) string {
 
 func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.info = ""
 	switch msg := msg.(type) {
 
 	// Is it a key press?
 	case tea.KeyMsg:
+		m.info = ""
 
 		// Cool, what was the actual key pressed?
 		switch msg.Type {
