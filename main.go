@@ -42,8 +42,8 @@ func initialModel(topic string) model {
 	return model{
 		pageName:        "search",
 		search:          topic,
-		displayArticles: map[int]string{0: "Lions", 1: "India", 2: "Submarines", 3: "Turtles", 4: "Canada", 5: "Go_(programming_language)"}, //make(map[int]string)
-		content:         "blahblah\nblah\nblah\nblah\nblah\nb\nl\na\nh\nblah\nblah\n...\nblah",
+		displayArticles: map[int]string{0: "..."},
+		content:         "Waiting for content...",
 		ready:           false,
 	}
 }
