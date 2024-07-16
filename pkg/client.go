@@ -39,7 +39,7 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 	params.Add("srsearch", queryText)
 	params.Add("utf8", "")
 	params.Add("format", "json")
-	params.Add("srlimit", "3")
+	params.Add("srlimit", "6")
 	params.Add("srprop", "snippet")
 
 	apiUrl := c.ApiUrl + params.Encode()

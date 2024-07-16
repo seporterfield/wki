@@ -173,6 +173,9 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.shownArticle = article.Title
 			m.content = newArticle.Content
 			m.viewport.SetContent(m.content)
+		case tea.KeyLeft, tea.KeyRight:
+			m.textInput, cmd = m.textInput.Update(msg)
+			return m, cmd
 		default:
 			m.textInput, cmd = m.textInput.Update(msg)
 			return m, tea.Batch(cmd, m.queryArticlesCmd(m.textInput.Value()))
