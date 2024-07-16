@@ -8,3 +8,7 @@ var WikipediaLangs = map[string]bool{
 	"de": true,
 	"fr": true,
 }
+
+func CleanWikimediaHTML(dirty string) string {
+	return dirty
+}

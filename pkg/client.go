@@ -75,7 +75,7 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 		description := entry["snippet"].(string)
 		articles[i] = Article{
 			Title:       title,
-			Description: description,
+			Description: CleanWikimediaHTML(description),
 			Content:     "",
 			Url:         fmt.Sprintf("%s/%s", c.WikiUrl, strings.ReplaceAll(title, " ", "_")),
 		}
