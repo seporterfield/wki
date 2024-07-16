@@ -2,7 +2,7 @@
 
 Features for wki
 - [ ] `wki` opens search with topic
-    - [ ] `wki -s <topic>` or `wki --search <topic>` also provides topic
+    - [ ] `wki -t <topic>` or `wki --search <topic>` also provides topic
     - [ ] topics come with short description
     - [ ]search list scrollable with up-down arrow key navigation
     - [ ]esc exits application
