@@ -126,7 +126,7 @@ func SearchView(m model) string {
 	}
 
 	// The footer
-	s += "\nPress esc to quit. Arrow keys to navigate.\n"
+	s += "\nPress esc to quit. Arrow keys and enter to navigate.\n"
 	s += m.info
 
 	// Send the UI for rendering
