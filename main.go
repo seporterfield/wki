@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/seporterfield/wki/pkg"
 )
 
 var (
@@ -26,18 +27,12 @@ var (
 	}()
 )
 
-type Article struct {
-	title       string
-	description string
-	content     string
-	url         string
-}
-
 type model struct {
 	pageName string
+	client   *pkg.Client
 	// Used in search view
 	textInput textinput.Model
-	Articles  map[int]Article
+	Articles  map[int]pkg.Article
 	cursor    int
 	// Article view
 	shownArticle string
@@ -53,12 +48,17 @@ func initialModel(topic string) model {
 	ti.CharLimit = 156
 	ti.Width = 20
 
+	client, _ := pkg.NewClient("en", "wikipedia.org/w/api.php?")
+
 	return model{
 		pageName:  "search",
+		client:    client,
 		textInput: ti,
-		Articles:  map[int]Article{0: {"...", "... waiting", "", ""}, 1: {"...", "... waiting", "", ""}},
-		content:   "Waiting for content...",
-		ready:     false,
+		Articles: map[int]pkg.Article{
+			0: {Title: "...", Description: "... waiting", Content: "", Url: ""},
+			1: {Title: "...", Description: "... waiting", Content: "", Url: ""}},
+		content: "Waiting for content...",
+		ready:   false,
 	}
 }
 
@@ -114,7 +114,7 @@ func SearchView(m model) string {
 			cursor = "*"
 		}
 		// Render the row
-		s += fmt.Sprintf("%s [%s] — %s \n", cursor, m.Articles[i].title, m.Articles[i].description)
+		s += fmt.Sprintf("%s [%s] — %s \n", cursor, m.Articles[i].Title, m.Articles[i].Description)
 	}
 
 	// The footer
@@ -151,8 +151,11 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter", "right":
+			article := m.Articles[m.cursor]
+			m.client.LoadArticle(article)
 			m.pageName = "article"
-			m.shownArticle = m.Articles[m.cursor].title
+			m.shownArticle = article.Title
+
 		}
 	}
 
