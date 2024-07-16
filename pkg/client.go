@@ -50,6 +50,10 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New("couldn't read response body")
@@ -79,7 +83,6 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 }
 
 func (c *Client) LoadArticle(article Article) (Article, error) {
-
 	params := url.Values{}
 	params.Add("action", "query")
 	params.Add("formatversion", "2")
@@ -96,6 +99,10 @@ func (c *Client) LoadArticle(article Article) (Article, error) {
 		return article, errors.New("couldn't fetch data from Wikipedia API")
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return article, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

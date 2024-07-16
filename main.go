@@ -13,6 +13,19 @@ import (
 	"github.com/seporterfield/wki/pkg"
 )
 
+const ExtendedUsage = `
+wki - Wikipedia at your fingertips
+
+Type into the search page to get results
+	- left and right arrow keys to move back and forth
+	- up and down arrow keys to move the cursor -> *
+	- enter key to read the selected article
+
+Use the arrow keys or vim controls to navigate the article reader
+Go back to the search page with "h" or the left arrow key
+
+Escape or Ctrl+C to quit`
+
 type model struct {
 	pageName string
 	client   *pkg.Client
@@ -29,14 +42,12 @@ type model struct {
 }
 
 func initialModel(topic string) model {
-	if topic == "" {
-		topic = "Giraffes"
-	}
 	ti := textinput.New()
-	ti.Placeholder = topic
+	ti.Placeholder = "Giraffe"
 	ti.Focus()
 	ti.CharLimit = 156
 	ti.Width = 20
+	ti.SetValue(topic)
 
 	client, err := pkg.NewClient("en", pkg.DefaultWikiUrl, pkg.DefaultApiUrl)
 	if err != nil {
@@ -133,6 +144,8 @@ func SearchView(m model) string {
 
 func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	// If a user used the -t option we want to
+	// update the article list using their input
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -163,6 +176,12 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			// character of the input we should go to the
 			// article view.
 			article := m.Articles[m.cursor]
+			// If the user is fast enough to hit enter before
+			// the articles load for the query they provided
+			// with -t we want to stop them from getting garbage
+			if article.Title == pkg.DefaultArticleMap[0].Title {
+				break
+			}
 			newArticle, err := m.client.LoadArticle(article)
 			if err != nil {
 				m.info = err.Error()
@@ -188,6 +207,12 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if strings.TrimSpace(m.textInput.Value()) == "" {
 		m.Articles = pkg.DefaultArticleMap
+	}
+
+	// Should be checked towards the end so we don't
+	// get stuck in an infinite loop
+	if m.Articles[0].Title == pkg.DefaultArticleMap[0].Title {
+		return m, tea.Batch(cmd, m.queryArticlesCmd())
 	}
 	return m, cmd
 }
@@ -260,11 +285,17 @@ func (m model) View() string {
 }
 
 func main() {
-	topic := flag.String("topic", "", "Topic to search")
-	help := flag.Bool("help", false, "Show help")
+	topic := flag.String("t", "", "Optional starting topic to search\nExample: wki -t Lions")
+	help := flag.Bool("help", false, "Show this help menu")
 	flag.Parse()
 	if *help {
+		fmt.Println(ExtendedUsage)
 		flag.Usage()
+	}
+	if flag.NArg() > 0 {
+		fmt.Println(ExtendedUsage)
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	p := tea.NewProgram(initialModel(*topic))
