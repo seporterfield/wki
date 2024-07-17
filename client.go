@@ -79,8 +79,12 @@ func (c *Client) LoadSearchList(queryText string) (map[int]Article, error) {
 	articles := make(map[int]Article)
 	for i, entry := range result.Query.Search {
 		articles[i] = Article{
-			Title:       entry.Title,
-			Description: fmt.Sprintf("... %s", CleanWikimediaHTML(entry.Snippet)),
+			Title: entry.Title,
+			//TODO use tea.Batch in update loop to send
+			// multiple API calls to get the page extract
+			// for each search result instead of using
+			// the snippet.
+			Description: CleanWikimediaHTML(entry.Snippet),
 			Content:     "",
 			Url:         fmt.Sprintf("%s/%s", c.WikiUrl, strings.ReplaceAll(entry.Title, " ", "_")),
 		}
