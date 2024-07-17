@@ -28,7 +28,30 @@ func NewClient(lang string, unformattedWikiUrl string, unformattedApiUrl string)
 	return client, nil
 }
 
-func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
+func (c *Client) fetch(result WikipediaJSON, apiUrl string) error {
+	resp, err := http.Get(apiUrl)
+	if err != nil {
+		return errors.New("couldn't fetch data from Wikipedia API")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected HTTP status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.New("couldn't read response body")
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return errors.New("couldn't decode JSON response")
+	}
+	return nil
+}
+
+func (c *Client) LoadSearchList(queryText string) (map[int]Article, error) {
 	if strings.TrimSpace(queryText) == "" {
 		return nil, nil
 	}
@@ -43,27 +66,10 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 	params.Add("srprop", "snippet")
 
 	apiUrl := c.ApiUrl + params.Encode()
-
-	resp, err := http.Get(apiUrl)
-	if err != nil {
-		return nil, errors.New("couldn't fetch data from Wikipedia API")
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.New("couldn't read response body")
-
-	}
-
 	var result WikipediaPageQueryJSON
-	err = json.Unmarshal(body, &result)
+	err := c.fetch(&result, apiUrl)
 	if err != nil {
-		return nil, errors.New("couldn't decode JSON response")
+		return nil, err
 	}
 
 	if len(result.Query.Search) == 0 {
@@ -74,7 +80,7 @@ func (c *Client) QueryArticles(queryText string) (map[int]Article, error) {
 	for i, entry := range result.Query.Search {
 		articles[i] = Article{
 			Title:       entry.Title,
-			Description: CleanWikimediaHTML(entry.Snippet),
+			Description: fmt.Sprintf("... %s", CleanWikimediaHTML(entry.Snippet)),
 			Content:     "",
 			Url:         fmt.Sprintf("%s/%s", c.WikiUrl, strings.ReplaceAll(entry.Title, " ", "_")),
 		}
@@ -94,25 +100,10 @@ func (c *Client) LoadArticle(article Article) (Article, error) {
 
 	apiUrl := c.ApiUrl + params.Encode()
 
-	resp, err := http.Get(apiUrl)
-	if err != nil {
-		return article, errors.New("couldn't fetch data from Wikipedia API")
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return article, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return article, errors.New("couldn't read response body")
-	}
-
 	var result WikipediaPageJSON
-	err = json.Unmarshal(body, &result)
+	err := c.fetch(&result, apiUrl)
 	if err != nil {
-		return article, errors.New("couldn't decode JSON response")
+		return article, err
 	}
 
 	if len(result.Query.Pages) == 0 {

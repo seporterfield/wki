@@ -210,7 +210,7 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) queryArticlesCmd() tea.Cmd {
 	query := m.textInput.Value()
 	return func() tea.Msg {
-		articles, err := m.client.QueryArticles(query)
+		articles, err := m.client.LoadSearchList(query)
 		if err != nil {
 			m.info = err.Error()
 		}

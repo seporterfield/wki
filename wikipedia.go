@@ -16,12 +16,24 @@ var WikipediaLangs = map[string]bool{
 	"fr": true,
 }
 
+type WikipediaJSON interface {
+}
+
 type WikipediaPageQueryJSON struct {
 	Query struct {
 		Search []struct {
 			Title   string `json:"title"`
 			Snippet string `json:"snippet"`
 		} `json:"search"`
+	} `json:"query"`
+}
+
+type WikipediaExtractPageJSON struct {
+	Query struct {
+		Pages map[string]struct {
+			Title   string `json:"title"`
+			Extract string `json:"extract"`
+		} `json:"pages"`
 	} `json:"query"`
 }
 
