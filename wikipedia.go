@@ -41,8 +41,7 @@ type WikipediaPageJSON struct {
 }
 
 func CleanWikimediaHTML(dirty string) string {
-
-	m := regexp.MustCompile(`{<ref>}.*?{<\/ref>}`)
+	m := regexp.MustCompile(`<ref[^>]*>.*?</ref>`)
 	clean := m.ReplaceAllString(dirty, "")
 
 	m = regexp.MustCompile(`\[\[(.*?)\]\]`)
@@ -51,7 +50,7 @@ func CleanWikimediaHTML(dirty string) string {
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 
-	m = regexp.MustCompile(`\{\{(.*?)\}\}`)
+	m = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
 	replace = func(match string) string {
 		// Format based on content what's inside the {{brackets}}
 		bracketContent := match[2 : len(match)-2]
@@ -65,8 +64,6 @@ func CleanWikimediaHTML(dirty string) string {
 		case "Short":
 			_, description, _ := strings.Cut(rest, "|")
 			return articleDescriptionStyle(description)
-		case "Infobox":
-			return ""
 		}
 		return ""
 	}
