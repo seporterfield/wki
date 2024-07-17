@@ -44,14 +44,8 @@ func CleanWikimediaHTML(dirty string) string {
 	m := regexp.MustCompile(`<ref[^>]*>.*?</ref>`)
 	clean := m.ReplaceAllString(dirty, "")
 
-	m = regexp.MustCompile(`\[\[(.*?)\]\]`)
-	replace := func(match string) string {
-		return linkStyle(match[2 : len(match)-2])
-	}
-	clean = m.ReplaceAllStringFunc(clean, replace)
-
 	m = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
-	replace = func(match string) string {
+	replace := func(match string) string {
 		// Format based on content what's inside the {{brackets}}
 		bracketContent := match[2 : len(match)-2]
 		startWord, rest, found := strings.Cut(bracketContent, " ")
@@ -66,6 +60,22 @@ func CleanWikimediaHTML(dirty string) string {
 			return articleDescriptionStyle(description)
 		}
 		return ""
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	lines := strings.Split(clean, "\n")
+	var cleanedLines []string
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if !strings.HasPrefix(trimmedLine, "[[File:") {
+			cleanedLines = append(cleanedLines, line)
+		}
+	}
+	clean = strings.Join(cleanedLines, "\n")
+
+	m = regexp.MustCompile(`(?s)\[\[(.*?)\]\]`)
+	replace = func(match string) string {
+		return linkStyle(match[2 : len(match)-2])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 
