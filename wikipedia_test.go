@@ -87,8 +87,8 @@ var tests = map[string]struct {
 | subsid = 
 | homepage = {{URL|https://openai.com/}}
 | footnotes = 
-}}`,
-		result: "",
+}}OpenAI is an`,
+		result: "OpenAI is an",
 	},
 }
 

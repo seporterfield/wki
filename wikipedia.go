@@ -40,9 +40,41 @@ type WikipediaPageJSON struct {
 	} `json:"query"`
 }
 
+func removeInfobox(input string) string {
+	// This regex takes into account cases like
+	// {{Infobox ...
+	// {{Taxobox ...
+	// {{Automatic taxobox ...
+	re := regexp.MustCompile(`{{[a-zA-Z0-9-_]+(?:\s[a-zA-Z0-9-_]+)?box`)
+	startSlice := re.FindStringIndex(input)
+	if startSlice == nil {
+		return input // No Infobox found
+	}
+	start := startSlice[0]
+
+	bracketCount := 0
+	end := start
+
+	for i := start; i < len(input); i++ {
+		if input[i] == '{' {
+			bracketCount++
+		} else if input[i] == '}' {
+			bracketCount--
+			if bracketCount == 0 {
+				end = i + 1
+				break
+			}
+		}
+	}
+
+	return input[:start] + input[end:]
+}
+
 func CleanWikimediaHTML(dirty string) string {
 	m := regexp.MustCompile(`<ref[^>]*>.*?</ref>`)
 	clean := m.ReplaceAllString(dirty, "")
+
+	clean = removeInfobox(clean)
 
 	m = regexp.MustCompile(`(?s)\{\{(.*?)\}\}`)
 	replace := func(match string) string {
