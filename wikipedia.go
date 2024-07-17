@@ -2,6 +2,7 @@ package main
 
 import (
 	"regexp"
+	"strings"
 
 	strip "github.com/grokify/html-strip-tags-go"
 )
@@ -40,10 +41,44 @@ type WikipediaPageJSON struct {
 }
 
 func CleanWikimediaHTML(dirty string) string {
-	clean := strip.StripTags(dirty)
-	m := regexp.MustCompile(`\[\[(.*?)\]\]`)
+
+	m := regexp.MustCompile(`{<ref>}.*?{<\/ref>}`)
+	clean := m.ReplaceAllString(dirty, "")
+
+	m = regexp.MustCompile(`\[\[(.*?)\]\]`)
 	replace := func(match string) string {
 		return linkStyle(match[2 : len(match)-2])
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	m = regexp.MustCompile(`\{\{(.*?)\}\}`)
+	replace = func(match string) string {
+		// Format based on content what's inside the {{brackets}}
+		bracketContent := match[2 : len(match)-2]
+		startWord, rest, found := strings.Cut(bracketContent, " ")
+		if !found {
+			return ""
+		}
+		switch startWord {
+		// Short description
+		// On the "Fork" article: {{Short description|Eating utensil}}
+		case "Short":
+			_, description, _ := strings.Cut(rest, "|")
+			return articleDescriptionStyle(description)
+		case "Infobox":
+			return ""
+		}
+		return ""
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	// Strip HTML tags only after removing
+	// Wikimedia/XML tags
+	clean = strip.StripTags(clean)
+
+	m = regexp.MustCompile(`'''(.*?)'''`)
+	replace = func(match string) string {
+		return articleBoldedStyle(match[3 : len(match)-3])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 	return clean

@@ -22,4 +22,10 @@ var (
 	listArticleStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#04B575")).
 				Render
+	articleDescriptionStyle = lipgloss.NewStyle().
+				Bold(true).
+				Render
+	articleBoldedStyle = lipgloss.NewStyle().
+				Bold(true).
+				Render
 )
