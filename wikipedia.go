@@ -3,7 +3,6 @@ package main
 import (
 	"regexp"
 
-	"github.com/charmbracelet/lipgloss"
 	strip "github.com/grokify/html-strip-tags-go"
 )
 
@@ -40,15 +39,11 @@ type WikipediaPageJSON struct {
 	} `json:"query"`
 }
 
-var link = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#04B575")).
-	Render
-
 func CleanWikimediaHTML(dirty string) string {
 	clean := strip.StripTags(dirty)
 	m := regexp.MustCompile(`\[\[(.*?)\]\]`)
 	replace := func(match string) string {
-		return link(match[2 : len(match)-2])
+		return linkStyle(match[2 : len(match)-2])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 	return clean

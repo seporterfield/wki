@@ -68,20 +68,6 @@ func initialModel(topic string) model {
 	}
 }
 
-var (
-	titleStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Right = "├"
-		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
-	}()
-
-	infoStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Left = "┤"
-		return titleStyle.BorderStyle(b)
-	}()
-)
-
 func (m model) headerView() string {
 	title := titleStyle.Render(fmt.Sprintf("wki - %s", m.shownArticle))
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
@@ -134,11 +120,11 @@ func SearchView(m model) string {
 			cursor = "*"
 		}
 		// Render the row
-		s += fmt.Sprintf("%s [%s] — %s \n", cursor, m.Articles[i].Title, m.Articles[i].Description)
+		s += fmt.Sprintf("%s %s — %s \n", cursor, listArticleStyle(m.Articles[i].Title), m.Articles[i].Description)
 	}
 
 	// The footer
-	s += "\nPress esc to quit. Arrow keys and enter to navigate.\n"
+	s += "\nNavigate: ←↑↓→ ↲. Quit: ESC.\n"
 	s += m.info
 
 	// Send the UI for rendering
