@@ -55,6 +55,9 @@ func initialModel(topic string) model {
 		os.Exit(1)
 	}
 
+	var vp viewport.Model
+	vp.Style = lipgloss.NewStyle()
+
 	return model{
 		pageName:  "search",
 		client:    client,
@@ -62,6 +65,7 @@ func initialModel(topic string) model {
 		Articles:  pkg.DefaultArticleMap,
 		content:   "Waiting for content...",
 		ready:     false,
+		viewport:  vp,
 	}
 }
 

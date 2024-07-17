@@ -121,6 +121,7 @@ func (c *Client) LoadArticle(article Article) (Article, error) {
 
 	page := result.Query.Pages[0]
 	article.Title = page.Title
-	article.Content = page.Revisions[0].Slots.Main.Content
+	content := page.Revisions[0].Slots.Main.Content
+	article.Content = CleanWikimediaHTML(content)
 	return article, nil
 }

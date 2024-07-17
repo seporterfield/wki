@@ -1,6 +1,11 @@
 package pkg
 
-import strip "github.com/grokify/html-strip-tags-go"
+import (
+	"regexp"
+
+	"github.com/charmbracelet/lipgloss"
+	strip "github.com/grokify/html-strip-tags-go"
+)
 
 const DefaultWikiUrl = "wikipedia.org/wiki"
 const DefaultApiUrl = "wikipedia.org/w/api.php?"
@@ -35,7 +40,16 @@ type WikipediaPageJSON struct {
 	} `json:"query"`
 }
 
+var link = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("#04B575")).
+	Render
+
 func CleanWikimediaHTML(dirty string) string {
 	clean := strip.StripTags(dirty)
+	m := regexp.MustCompile(`\[\[(.*?)\]\]`)
+	replace := func(match string) string {
+		return link(match[2 : len(match)-2])
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
 	return clean
 }
