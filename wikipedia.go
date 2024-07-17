@@ -87,7 +87,7 @@ func CleanWikimediaHTML(dirty string) string {
 		switch startWord {
 		// Short description
 		// On the "Fork" article: {{Short description|Eating utensil}}
-		case "Short":
+		case "Short", "short":
 			_, description, _ := strings.Cut(rest, "|")
 			return articleDescriptionStyle(description)
 		}

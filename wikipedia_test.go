@@ -90,6 +90,10 @@ var tests = map[string]struct {
 }}OpenAI is an`,
 		result: "OpenAI is an",
 	},
+	"lowercase short description": {
+		input:  "{{short description|Swedish CGI-animated character}}",
+		result: articleDescriptionStyle("Swedish CGI-animated character"),
+	},
 }
 
 func TestCleanWikimediaHTML(t *testing.T) {
