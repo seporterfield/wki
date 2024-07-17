@@ -75,9 +75,10 @@ func (m model) headerView() string {
 }
 
 func (m model) footerView() string {
+	returnNote := "Return to search ← "
 	info := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
-	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)-len(returnNote)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, noteStyle(returnNote), line, info)
 }
 
 func ArticleView(m model) string {

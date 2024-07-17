@@ -28,4 +28,7 @@ var (
 	articleBoldedStyle = lipgloss.NewStyle().
 				Bold(true).
 				Render
+	noteStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#808080")).
+			Render
 )
