@@ -6,6 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.26.6
 	github.com/charmbracelet/lipgloss v0.9.1
+	github.com/grokify/html-strip-tags-go v0.1.0
 )
 
 require (

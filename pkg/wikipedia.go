@@ -1,5 +1,7 @@
 package pkg
 
+import strip "github.com/grokify/html-strip-tags-go"
+
 const DefaultWikiUrl = "wikipedia.org/wiki"
 const DefaultApiUrl = "wikipedia.org/w/api.php?"
 
@@ -34,5 +36,6 @@ type WikipediaPageJSON struct {
 }
 
 func CleanWikimediaHTML(dirty string) string {
-	return dirty
+	clean := strip.StripTags(dirty)
+	return clean
 }
