@@ -10,7 +10,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/seporterfield/wki/pkg"
 )
 
 const ExtendedUsage = `
@@ -28,10 +27,10 @@ Escape or Ctrl+C to quit`
 
 type model struct {
 	pageName string
-	client   *pkg.Client
+	client   *Client
 	// Used in search view
 	textInput textinput.Model
-	Articles  map[int]pkg.Article
+	Articles  map[int]Article
 	cursor    int
 	info      string
 	// Article view
@@ -49,7 +48,7 @@ func initialModel(topic string) model {
 	ti.Width = 20
 	ti.SetValue(topic)
 
-	client, err := pkg.NewClient("en", pkg.DefaultWikiUrl, pkg.DefaultApiUrl)
+	client, err := NewClient("en", DefaultWikiUrl, DefaultApiUrl)
 	if err != nil {
 		fmt.Println("fatal:", err)
 		os.Exit(1)
@@ -62,7 +61,7 @@ func initialModel(topic string) model {
 		pageName:  "search",
 		client:    client,
 		textInput: ti,
-		Articles:  pkg.DefaultArticleMap,
+		Articles:  DefaultArticleMap,
 		content:   "Waiting for content...",
 		ready:     false,
 		viewport:  vp,
@@ -183,7 +182,7 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			// If the user is fast enough to hit enter before
 			// the articles load for the query they provided
 			// with -t we want to stop them from getting garbage
-			if article.Title == pkg.DefaultArticleMap[0].Title {
+			if article.Title == DefaultArticleMap[0].Title {
 				break
 			}
 			newArticle, err := m.client.LoadArticle(article)
@@ -210,12 +209,12 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Articles = msg.articles
 	}
 	if strings.TrimSpace(m.textInput.Value()) == "" {
-		m.Articles = pkg.DefaultArticleMap
+		m.Articles = DefaultArticleMap
 	}
 
 	// Should be checked towards the end so we don't
 	// get stuck in an infinite loop
-	if m.Articles[0].Title == pkg.DefaultArticleMap[0].Title {
+	if m.Articles[0].Title == DefaultArticleMap[0].Title {
 		return m, tea.Batch(cmd, m.queryArticlesCmd())
 	}
 	return m, cmd
@@ -233,7 +232,7 @@ func (m model) queryArticlesCmd() tea.Cmd {
 }
 
 type apiResponseMsg struct {
-	articles map[int]pkg.Article
+	articles map[int]Article
 	query    string
 }
 
