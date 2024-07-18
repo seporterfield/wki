@@ -186,7 +186,7 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.Articles[m.cursor] = newArticle
-			m.content = newArticle.Content
+			m.content = lipgloss.NewStyle().Width(m.viewport.Width).Render(newArticle.Content)
 			m.viewport.SetContent(m.content)
 		case tea.KeyLeft, tea.KeyRight:
 			m.textInput, cmd = m.textInput.Update(msg)
