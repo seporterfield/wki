@@ -148,9 +148,24 @@ func CleanWikimediaHTML(dirty string) string {
 	// Wikimedia/XML tags
 	clean = strip.StripTags(clean)
 
+	// Bold italic
+	m = regexp.MustCompile(`'''''(.*?)'''''`)
+	replace = func(match string) string {
+		return articleBoldedItalicStyle(match[5 : len(match)-5])
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	// Bold
 	m = regexp.MustCompile(`'''(.*?)'''`)
 	replace = func(match string) string {
 		return articleBoldedStyle(match[3 : len(match)-3])
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	// Italic
+	m = regexp.MustCompile(`''(.*?)''`)
+	replace = func(match string) string {
+		return articleItalicStyle(match[2 : len(match)-2])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 	return clean
