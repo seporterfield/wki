@@ -1,0 +1,54 @@
+package main
+
+var WikipediaLangs = map[string]bool{
+	"en":     true, // English
+	"de":     true, // German
+	"fr":     true, // French
+	"es":     true, // Spanish
+	"ja":     true, // Japanese
+	"ru":     true, // Russian
+	"pt":     true, // Portuguese
+	"it":     true, // Italian
+	"zh":     true, // Chinese
+	"fa":     true, // Persian
+	"pl":     true, // Polish
+	"ar":     true, // Arabic
+	"nl":     true, // Dutch
+	"he":     true, // Hebrew
+	"uk":     true, // Ukrainian
+	"tr":     true, // Turkish
+	"id":     true, // Indonesian
+	"cs":     true, // Czech
+	"sv":     true, // Swedish
+	"ko":     true, // Korean
+	"vi":     true, // Vietnamese
+	"hu":     true, // Hungarian
+	"fi":     true, // Finnish
+	"th":     true, // Thai
+	"simple": true, // Simple English
+	"ca":     true, // Catalan
+	"no":     true, // Norwegian
+	"bn":     true, // Bengali
+	"el":     true, // Greek
+	"hi":     true, // Hindi
+	"ro":     true, // Romanian
+	"sr":     true, // Serbian
+	"bg":     true, // Bulgarian
+	"uz":     true, // Uzbek
+	"da":     true, // Danish
+	"ms":     true, // Malay
+	"az":     true, // Azerbaijani
+	"et":     true, // Estonian
+	"hy":     true, // Armenian
+	"sk":     true, // Slovak
+	"hr":     true, // Croatian
+	"eu":     true, // Basque
+	"lt":     true, // Lithuanian
+	"ml":     true, // Malayalam
+	"eo":     true, // Esperanto
+	"zh-yue": true, // Cantonese
+	"sl":     true, // Slovene
+	"ta":     true, // Tamil
+	"ur":     true, // Urdu
+	"lv":     true, // Latvian
+}

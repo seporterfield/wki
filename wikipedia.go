@@ -10,12 +10,6 @@ import (
 const DefaultWikiUrl = "wikipedia.org/wiki"
 const DefaultApiUrl = "wikipedia.org/w/api.php?"
 
-var WikipediaLangs = map[string]bool{
-	"en": true,
-	"de": true,
-	"fr": true,
-}
-
 type WikipediaJSON interface {
 }
 
@@ -92,16 +86,43 @@ func CleanWikimediaHTML(dirty string) string {
 	replace := func(match string) string {
 		// Format based on content what's inside the {{brackets}}
 		bracketContent := match[2 : len(match)-2]
-		startWord, rest, found := strings.Cut(bracketContent, " ")
-		if !found {
-			return ""
-		}
+		startWord, rest, _ := strings.Cut(bracketContent, " ")
 		switch startWord {
 		// Short description
 		// On the "Fork" article: {{Short description|Eating utensil}}
 		case "Short", "short":
 			_, description, _ := strings.Cut(rest, "|")
 			return articleDescriptionStyle(description)
+		}
+		startWord, rest, found := strings.Cut(bracketContent, "|")
+		if !found {
+			return ""
+		}
+		if _, ok := WikipediaLangs[startWord]; ok {
+			return rest
+		}
+		switch startWord {
+		case "IPA", "IPAc-cmn", "IPAc-yue":
+			return rest
+		}
+		if len(startWord) < 4 {
+			return ""
+		}
+		startWord = strings.ToLower(startWord)[:4]
+		switch startWord {
+		// https://en.wikipedia.org/wiki/Template:Lang
+		// It's much worse than it seems
+		case "lang":
+			_, phrase, found := strings.Cut(rest, "|")
+			if found {
+				return phrase
+			}
+			parts := strings.Split(bracketContent, "|")
+
+			// Check if there are at least two parts
+			if len(parts) >= 2 {
+				return parts[1]
+			}
 		}
 		return ""
 	}

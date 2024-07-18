@@ -94,6 +94,26 @@ var tests = map[string]struct {
 		input:  "{{short description|Swedish CGI-animated character}}",
 		result: articleDescriptionStyle("Swedish CGI-animated character"),
 	},
+	"CJK": {
+		input:  "廣州市人民代表大會",
+		result: "廣州市人民代表大會",
+	},
+	"arabic": {
+		input:  "بَغْدَاد",
+		result: "بَغْدَاد",
+	},
+	"Lang": {
+		input:  "{{Lang|zh-hans|我也来写百科全书}}",
+		result: "我也来写百科全书",
+	},
+	"lang-code": {
+		input:  "{{lang-fr|Vintimille}}",
+		result: "Vintimille",
+	},
+	"linktext": {
+		input:  "{{linktext|中|文|維|基|百|科}}",
+		result: "中|文|維|基|百|科",
+	},
 }
 
 func TestCleanWikimediaHTML(t *testing.T) {
