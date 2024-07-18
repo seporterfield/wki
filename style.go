@@ -24,6 +24,7 @@ var (
 				Render
 	articleDescriptionStyle = lipgloss.NewStyle().
 				Bold(true).
+				Underline(true).
 				Render
 	articleBoldedStyle = lipgloss.NewStyle().
 				Bold(true).
