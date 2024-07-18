@@ -26,4 +26,4 @@ jobs:
         goarch: ${{ matrix.goarch }}
         sha256sum: true
         md5sum: false
-        extra_files: COPYING
+        extra_files: LICENSE
