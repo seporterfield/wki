@@ -170,14 +170,22 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			if article.Title == DefaultArticleMap[0].Title {
 				break
 			}
+
+			m.pageName = "article"
+			m.shownArticle = article.Title
+
+			// "Cache" existing content
+			if m.Articles[m.cursor].Content != "" {
+				break
+			}
+
 			newArticle, err := m.client.LoadArticle(article)
 			if err != nil {
 				m.info = err.Error()
 				break
 			}
+
 			m.Articles[m.cursor] = newArticle
-			m.pageName = "article"
-			m.shownArticle = article.Title
 			m.content = newArticle.Content
 			m.viewport.SetContent(m.content)
 		case tea.KeyLeft, tea.KeyRight:
