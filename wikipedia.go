@@ -168,5 +168,8 @@ func CleanWikimediaHTML(dirty string) string {
 		return articleItalicStyle(match[2 : len(match)-2])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	m = regexp.MustCompile(`\n{4,}`) // Match 4 or more consecutive newlines
+	clean = m.ReplaceAllString(clean, "\n\n\n")
 	return clean
 }
