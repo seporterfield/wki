@@ -7,6 +7,8 @@ Written in go using [bubbletea](https://github.com/charmbracelet/bubbletea/).
 
 ## Installation
 
+
+
 ### Go
 `go install github.com/seporterfield/wki@latest`
 
