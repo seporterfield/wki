@@ -5,11 +5,14 @@
 
 Written in go using [bubbletea](https://github.com/charmbracelet/bubbletea/).
 
-## Installation
+Install from package
+--------------------
 
+Pre-built packages for Windows, macOS, and Linux are found on the [Releases](https://github.com/seporterfield/wki/releases/) page.
 
+Install with Go
+---------------
 
-### Go
 `go install github.com/seporterfield/wki@latest`
 
 ## Usage
