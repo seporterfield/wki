@@ -78,6 +78,13 @@ func removeInfobox(input string) string {
 	return input[:start] + input[end:]
 }
 
+// Character entities that wikitext doesn't include.
+// Non-examples: @ and © are allowed by wikitext.
+var WikiHTMLCharacterEntities = map[string]string{
+	"&nbsp;": " ",
+	"&quot;": `"`,
+}
+
 // Converts Wikitext into a TUI-friendly string
 func CleanWikimediaHTML(dirty string) string {
 	m := regexp.MustCompile(`<ref[^>]*>.*?</ref>`)
@@ -162,6 +169,12 @@ func CleanWikimediaHTML(dirty string) string {
 	// Strip HTML tags only after removing
 	// Wikimedia/XML tags
 	clean = strip.StripTags(clean)
+
+	// Replace HTML character entities
+	for entity, entityStr := range WikiHTMLCharacterEntities {
+		m = regexp.MustCompile(entity)
+		clean = m.ReplaceAllString(clean, entityStr)
+	}
 
 	// Bold italic
 	m = regexp.MustCompile(`'''''(.*?)'''''`)
