@@ -162,6 +162,17 @@ func CleanWikimediaHTML(dirty string) string {
 	// Hyperlinks
 	m = regexp.MustCompile(`(?s)\[\[(.*?)\]\]`)
 	replace = func(match string) string {
+		bracketContent := match[2 : len(match)-2]
+		parts := strings.Split(bracketContent, "|")
+		if len(parts) != 2 {
+			return parts[0]
+		}
+		return linkStyle(parts[1])
+	}
+	clean = m.ReplaceAllStringFunc(clean, replace)
+
+	// Other brackets
+	replace = func(match string) string {
 		return linkStyle(match[2 : len(match)-2])
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)

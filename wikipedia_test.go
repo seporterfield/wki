@@ -35,7 +35,11 @@ var tests = map[string]struct {
 	},
 	"Brackets": {
 		input:  "here are [[brackets]] wow",
-		result: fmt.Sprintf("here are %s wow", linkStyle("brackets")),
+		result: "here are brackets wow",
+	},
+	"Two links": {
+		input:  "[[Fauna of Africa|African]] [[even-toed ungulate|hoofed mammal]]",
+		result: fmt.Sprintf("%s %s", linkStyle("African"), linkStyle("hoofed mammal")),
 	},
 	"double curly brace with newlines": {
 		input:  "{{Multiple |\n things\n}}",
