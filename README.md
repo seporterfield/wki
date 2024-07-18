@@ -1,24 +1,25 @@
-# Wikipedia at your fingertips.
-
-Written in go using [bubbletea](https://github.com/charmbracelet/bubbletea/).
-
-## Usage
-
-Type into the search page to get results
-- Left and right arrow keys to move back and forth
-- Up and down arrow keys to move the cursor `*`
-- Enter to open the selected article
+# wki
+Wikipedia at your fingertips
 
 ![demonstration of wki](wki.gif)
 
-Read Wikipedia articles
-- Use the arrow keys or vim/less controls to navigate the article reader.
-- Go back to the search page with the left arrow key.
+Written in go using [bubbletea](https://github.com/charmbracelet/bubbletea/).
 
-Escape or Ctrl+C to quit.
-
-## Installing
+## Installation
 
 ### Go
 `go install github.com/seporterfield/wki@latest`
 
+## Usage
+
+Type into the search bar to search for articles.
+- Move back and forth:         left and right arrow keys
+- Move cursor `*`:             up and down arrow keys
+- Open the selected article:   enter
+- Navigate the article reader: arrow keys or vim/less controls
+- Return to search page:       left arrow key
+- Quit:                        escape or Ctrl+C
+
+## License
+
+[MIT](LICENSE)

@@ -15,15 +15,14 @@ import (
 const ExtendedUsage = `
 wki - Wikipedia at your fingertips
 
-Type into the search page to get results
-	- left and right arrow keys to move back and forth
-	- up and down arrow keys to move the cursor -> *
-	- enter key to read the selected article
-
-Use the arrow keys or vim controls to navigate the article reader
-Go back to the search page with "h" or the left arrow key
-
-Escape or Ctrl+C to quit`
+Type into the search bar to search for articles.
+- Move back and forth:         left and right arrow keys
+- Move cursor ` + "`*`" + `:             up and down arrow keys
+- Open the selected article:   enter
+- Navigate the article reader: arrow keys or vim/less controls
+- Return to search page:       left arrow key
+- Quit:                        escape or Ctrl+C
+`
 
 type model struct {
 	pageName string
