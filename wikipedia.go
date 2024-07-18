@@ -118,11 +118,18 @@ func CleanWikimediaHTML(dirty string) string {
 			return rest
 		}
 
+		switch startWord {
 		// https://en.wikipedia.org/wiki/Template:IPA
 		// Only four exceptions this time, not bad
-		switch startWord {
 		case "IPA", "IPAc-cmn", "IPAc-yue", "IPAc-hu", "IPAc-pl":
 			return rest
+		// https://en.wikipedia.org/wiki/Template:Transliteration
+		case "transliteration":
+			parts := strings.Split(bracketContent, "|")
+			if len(parts) == 0 {
+				return ""
+			}
+			return parts[len(parts)-1]
 		}
 		if len(startWord) < 4 {
 			return ""
