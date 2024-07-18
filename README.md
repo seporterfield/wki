@@ -1,5 +1,5 @@
-# wki
-Wikipedia at your fingertips
+# wki 📖 Wikipedia at your fingertips
+[![Go Report Card](https://goreportcard.com/badge/github.com/seporterfield/wki)](https://goreportcard.com/report/github.com/seporterfield/wki)
 
 ![demonstration of wki](wki.gif)
 
