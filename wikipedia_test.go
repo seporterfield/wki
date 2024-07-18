@@ -114,6 +114,21 @@ var tests = map[string]struct {
 		input:  "{{linktext|中|文|維|基|百|科}}",
 		result: "中|文|維|基|百|科",
 	},
+	"infoboxChineseWithInnerBrackets": {
+		input: `{{Infobox website
+| name = Chinese Wikipedia<br />{{lang|zh-Hant|{{linktext|維基百科}} / {{linktext|维基百科}}}}
+|logo =  [[File:Wikipedia-logo-v2-zh.svg|155px]][[File:Wikipedia-logo-v2-zh-hans-expected (standard ver).svg|155px]]
+|logocaption = Website logo in [[Traditional Chinese]] and [[Simplified Chinese]]
+| launch_date = {{start date and age|df=yes|2001|5|11}}
+}}
+{{Infobox Chinese
+| l = Chinese-language Wiki-encyclopedia
+| p = Zhōngwén Wéijī Bǎikē
+| mi = {{IPAc-cmn|zh|ong|1|wen|2|-|wei|2|j|i|1|-|b|ai|3|k|e|1}}
+| tp = Jhong-wún Wéi-ji Bǎi-ke
+}}`,
+		result: "",
+	},
 }
 
 func TestCleanWikimediaHTML(t *testing.T) {
