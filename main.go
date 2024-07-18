@@ -21,8 +21,7 @@ Type into the search bar to search for articles.
 - Open the selected article:   enter
 - Navigate the article reader: arrow keys or vim/less controls
 - Return to search page:       left arrow key
-- Quit:                        escape or Ctrl+C
-`
+- Quit:                        escape or Ctrl+C`
 
 type model struct {
 	pageName string
