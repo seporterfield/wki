@@ -46,11 +46,13 @@ type WikipediaPageJSON struct {
 	} `json:"query"`
 }
 
+// Removes infoboxes of any type from a Wikitext string
 func removeInfobox(input string) string {
 	// This regex takes into account cases like
 	// {{Infobox ...
 	// {{Taxobox ...
 	// {{Automatic taxobox ...
+	// https://en.wikipedia.org/wiki/Wikipedia:List_of_infoboxes
 	re := regexp.MustCompile(`{{[a-zA-Z0-9-_]+(?:\s[a-zA-Z0-9-_]+)?box`)
 	startSlice := re.FindStringIndex(input)
 	if startSlice == nil {
@@ -76,6 +78,7 @@ func removeInfobox(input string) string {
 	return input[:start] + input[end:]
 }
 
+// Converts Wikitext into a TUI-friendly string
 func CleanWikimediaHTML(dirty string) string {
 	m := regexp.MustCompile(`<ref[^>]*>.*?</ref>`)
 	clean := m.ReplaceAllString(dirty, "")
@@ -88,30 +91,40 @@ func CleanWikimediaHTML(dirty string) string {
 		bracketContent := match[2 : len(match)-2]
 		startWord, rest, _ := strings.Cut(bracketContent, " ")
 		switch startWord {
+
 		// Short description
 		// On the "Fork" article: {{Short description|Eating utensil}}
 		case "Short", "short":
 			_, description, _ := strings.Cut(rest, "|")
 			return articleDescriptionStyle(description)
 		}
+
+		// Stuff like {{... | ...}}
 		startWord, rest, found := strings.Cut(bracketContent, "|")
 		if !found {
 			return ""
 		}
+
+		// https://new.wikipedia.org/wiki/Template:Zh
+		// Generalized just in case.
 		if _, ok := WikipediaLangs[startWord]; ok {
 			return rest
 		}
+
+		// https://en.wikipedia.org/wiki/Template:IPA
+		// Only four exceptions this time, not bad
 		switch startWord {
-		case "IPA", "IPAc-cmn", "IPAc-yue":
+		case "IPA", "IPAc-cmn", "IPAc-yue", "IPAc-hu", "IPAc-pl":
 			return rest
 		}
 		if len(startWord) < 4 {
 			return ""
 		}
-		startWord = strings.ToLower(startWord)[:4]
-		switch startWord {
+
 		// https://en.wikipedia.org/wiki/Template:Lang
 		// It's much worse than it seems
+		startWord = strings.ToLower(startWord)[:4]
+		switch startWord {
 		case "lang":
 			_, phrase, found := strings.Cut(rest, "|")
 			if found {
@@ -128,6 +141,7 @@ func CleanWikimediaHTML(dirty string) string {
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 
+	// Files and images
 	lines := strings.Split(clean, "\n")
 	var cleanedLines []string
 	for _, line := range lines {
@@ -138,6 +152,7 @@ func CleanWikimediaHTML(dirty string) string {
 	}
 	clean = strings.Join(cleanedLines, "\n")
 
+	// Hyperlinks
 	m = regexp.MustCompile(`(?s)\[\[(.*?)\]\]`)
 	replace = func(match string) string {
 		return linkStyle(match[2 : len(match)-2])
@@ -169,7 +184,8 @@ func CleanWikimediaHTML(dirty string) string {
 	}
 	clean = m.ReplaceAllStringFunc(clean, replace)
 
-	m = regexp.MustCompile(`\n{4,}`) // Match 4 or more consecutive newlines
+	// Anything more than three consecutive newlines is excessive
+	m = regexp.MustCompile(`\n{4,}`)
 	clean = m.ReplaceAllString(clean, "\n\n\n")
 	return clean
 }
