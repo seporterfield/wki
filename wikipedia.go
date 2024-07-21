@@ -121,7 +121,7 @@ func CleanWikimediaHTML(dirty string) string {
 		switch startWord {
 		// https://en.wikipedia.org/wiki/Template:IPA
 		// Only four exceptions this time, not bad
-		case "IPA", "IPAc-cmn", "IPAc-yue", "IPAc-hu", "IPAc-pl":
+		case "IPA", "IPAc-en", "IPAc-cmn", "IPAc-yue", "IPAc-hu", "IPAc-pl":
 			return rest
 		// https://en.wikipedia.org/wiki/Template:Transliteration
 		case "transliteration":
