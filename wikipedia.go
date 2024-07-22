@@ -123,6 +123,9 @@ func CleanWikimediaHTML(dirty string) string {
 		// Only four exceptions this time, not bad
 		case "IPA", "IPAc-en", "IPAc-cmn", "IPAc-yue", "IPAc-hu", "IPAc-pl":
 			return rest
+		// https://en.wikipedia.org/wiki/Template:Convert
+		case "convert":
+			return rest
 		// https://en.wikipedia.org/wiki/Template:Transliteration
 		case "transliteration":
 			parts := strings.Split(bracketContent, "|")
