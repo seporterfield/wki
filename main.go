@@ -1,10 +1,11 @@
 package main
 
+// A Wikipedia TUI
+
 import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -23,6 +24,23 @@ Type into the search bar to search for articles.
 - Return to search page:       left arrow key
 - Quit:                        escape or Ctrl+C`
 
+// Helper struct enabling multiple TUI pages
+// along with the pages map and model.pageName
+type Page struct {
+	update func(model, tea.Msg) (tea.Model, tea.Cmd)
+	view   func(model) string
+}
+
+// New Update/View methods go here
+var pages = map[string]Page{
+	"search":  {update: SearchUpdate, view: SearchView},
+	"article": {update: ArticleUpdate, view: ArticleView},
+}
+
+// ---------------------------------------
+// Bubbletea model, Update, View, and Init
+// ---------------------------------------
+
 type model struct {
 	pageName string
 	client   *Client
@@ -37,6 +55,48 @@ type model struct {
 	ready        bool
 	content      string
 }
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		headerHeight := lipgloss.Height(m.headerView())
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+
+		// Wait for window dimensions before initializing viewport
+		if !m.ready {
+			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
+			m.viewport.YPosition = headerHeight
+			m.viewport.SetContent(m.content)
+			m.ready = true
+			// Render the viewport one line below the header.
+			m.viewport.YPosition = headerHeight + 1
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height - verticalMarginHeight
+		}
+	}
+	// Use Update method of current page
+	if page, ok := pages[m.pageName]; ok {
+		return page.update(m, msg)
+	}
+	return m, tea.Quit
+}
+
+func (m model) View() string {
+	if page, ok := pages[m.pageName]; ok {
+		return page.view(m)
+	}
+	return "I don't know how you ended up here.."
+}
+
+func (m model) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+// --------------------
+// Initial model & main
+// --------------------
 
 func initialModel(topic string) model {
 	ti := textinput.New()
@@ -64,220 +124,6 @@ func initialModel(topic string) model {
 		ready:     false,
 		viewport:  vp,
 	}
-}
-
-func (m model) headerView() string {
-	title := titleStyle.Render(fmt.Sprintf("wki - %s", m.shownArticle))
-	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
-}
-
-func (m model) footerView() string {
-	returnNote := "Return to search ← "
-	info := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
-	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)-len(returnNote)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, noteStyle(returnNote), line, info)
-}
-
-func ArticleView(m model) string {
-	if !m.ready {
-		return "\n  Initializing..."
-	}
-	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
-}
-
-func ArticleUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
-			return m, tea.Quit
-		case tea.KeyLeft:
-			m.pageName = "search"
-		}
-	}
-
-	// Handle keyboard and mouse events in the viewport
-	m.viewport, cmd = m.viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
-}
-
-func SearchView(m model) string {
-	s := "wki - Search Wikipedia\n\n"
-	s += m.textInput.View()
-	s += "\n\n"
-	for i := 0; i < len(m.Articles); i++ {
-
-		cursor := " "
-		if m.cursor == i {
-			cursor = "*"
-		}
-		// Render the row
-		s += fmt.Sprintf("%s %s — %s \n", cursor, listArticleStyle(m.Articles[i].Title), m.Articles[i].Description)
-	}
-
-	// The footer
-	s += "\nNavigate: ←↑↓→ ↲. Quit: ESC.\n"
-	s += m.info
-
-	// Send the UI for rendering
-	return s
-}
-
-func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	// If a user used the -t option we want to
-	// update the article list using their input
-	switch msg := msg.(type) {
-
-	// Is it a key press?
-	case tea.KeyMsg:
-		m.info = ""
-
-		// Cool, what was the actual key pressed?
-		switch msg.Type {
-
-		// These keys should exit the program.
-		case tea.KeyCtrlC, tea.KeyEsc:
-			return m, tea.Quit
-
-		// The "up" and "k" keys move the cursor up
-		case tea.KeyUp:
-			if m.cursor > 0 {
-				m.cursor--
-			}
-
-		// The "down" and "j" keys move the cursor down
-		case tea.KeyDown:
-			if m.cursor < len(m.Articles)-1 {
-				m.cursor++
-			}
-
-		case tea.KeyEnter:
-			// TODO: on right-key press if we're at the last
-			// character of the input we should go to the
-			// article view.
-			article := m.Articles[m.cursor]
-			// If the user is fast enough to hit enter before
-			// the articles load for the query they provided
-			// with -t we want to stop them from getting garbage
-			if article.Title == DefaultArticleMap[0].Title {
-				break
-			}
-
-			m.pageName = "article"
-			m.shownArticle = article.Title
-
-			// "Cache" existing content
-			if m.Articles[m.cursor].Content != "" {
-				break
-			}
-
-			newArticle, err := m.client.LoadArticle(article)
-			if err != nil {
-				m.info = err.Error()
-				break
-			}
-
-			m.Articles[m.cursor] = newArticle
-			m.content = lipgloss.NewStyle().Width(m.viewport.Width).Render(newArticle.Content)
-			m.viewport.SetContent(m.content)
-		case tea.KeyLeft, tea.KeyRight:
-			m.textInput, cmd = m.textInput.Update(msg)
-			return m, cmd
-		default:
-			m.textInput, cmd = m.textInput.Update(msg)
-			return m, tea.Batch(cmd, m.queryArticlesCmd())
-		}
-	case apiResponseMsg:
-		if msg.query != m.textInput.Value() {
-			break
-		}
-		m.Articles = msg.articles
-	}
-	if strings.TrimSpace(m.textInput.Value()) == "" {
-		m.Articles = DefaultArticleMap
-	}
-
-	// Should be checked towards the end so we don't
-	// get stuck in an infinite loop
-	if m.Articles[0].Title == DefaultArticleMap[0].Title {
-		return m, tea.Batch(cmd, m.queryArticlesCmd())
-	}
-	return m, cmd
-}
-
-func (m model) queryArticlesCmd() tea.Cmd {
-	query := m.textInput.Value()
-	return func() tea.Msg {
-		articles, err := m.client.LoadSearchList(query)
-		if err != nil {
-			m.info = err.Error()
-		}
-		return apiResponseMsg{articles: articles, query: query}
-	}
-}
-
-type apiResponseMsg struct {
-	articles map[int]Article
-	query    string
-}
-
-type Page struct {
-	update func(model, tea.Msg) (tea.Model, tea.Cmd)
-	view   func(model) string
-}
-
-var pages = map[string]Page{
-	"search":  {update: SearchUpdate, view: SearchView},
-	"article": {update: ArticleUpdate, view: ArticleView},
-}
-
-func (m model) Init() tea.Cmd {
-	return textinput.Blink
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		headerHeight := lipgloss.Height(m.headerView())
-		footerHeight := lipgloss.Height(m.footerView())
-		verticalMarginHeight := headerHeight + footerHeight
-
-		if !m.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
-			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
-			m.viewport.YPosition = headerHeight
-			m.viewport.SetContent(m.content)
-			m.ready = true
-			// Render the viewport one line below the header.
-			m.viewport.YPosition = headerHeight + 1
-		} else {
-			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height - verticalMarginHeight
-		}
-	}
-	if page, ok := pages[m.pageName]; ok {
-		return page.update(m, msg)
-	}
-	return m, tea.Quit
-}
-
-func (m model) View() string {
-	if page, ok := pages[m.pageName]; ok {
-		return page.view(m)
-	}
-	return "I don't know how you ended up here.."
 }
 
 func main() {
