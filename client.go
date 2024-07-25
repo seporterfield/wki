@@ -84,6 +84,9 @@ func (c *Client) LoadSearchList(queryText string) (map[int]Article, error) {
 			// multiple API calls to get the page extract
 			// for each search result instead of using
 			// the snippet.
+
+			// Might be able to replace cleaning entirely with the "explaintext"
+			// https://www.mediawiki.org/wiki/Extension:TextExtracts
 			Description: CleanWikimediaHTML(entry.Snippet),
 			Content:     "",
 			Url:         fmt.Sprintf("%s/%s", c.WikiUrl, strings.ReplaceAll(entry.Title, " ", "_")),
