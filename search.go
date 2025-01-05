@@ -8,6 +8,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+func truncate(str string, length int) (truncated string) {
+	if length <= 0 {
+		return
+	}
+	for i, char := range str {
+		if i >= length {
+			break
+		}
+		truncated += string(char)
+	}
+	return
+}
+
 func SearchView(m model) string {
 	s := "wki - Search Wikipedia\n\n"
 	s += m.textInput.View()
@@ -19,11 +32,13 @@ func SearchView(m model) string {
 			cursor = "*"
 		}
 		// Render the row
-		s += fmt.Sprintf("%s %s — %s \n", cursor, listArticleStyle(m.Articles[i].Title), m.Articles[i].Description)
+		maxW := m.viewport.Width - len(m.Articles[i].Title) - 5
+		truncatedDescription := truncate(m.Articles[i].Description, maxW)
+		s += fmt.Sprintf("%s %s — %s \n", cursor, listArticleStyle(m.Articles[i].Title), truncatedDescription)
 	}
 
 	// The footer
-	s += "\nNavigate: ←↑↓→ ↲. Quit: ESC.\n"
+	s += "\nNavigate: ←↑↓→ ↲.\nEnter vim normal mode: ESC.\nPress <CTRL-C> to exit.\n"
 	s += m.info
 
 	// Send the UI for rendering
@@ -41,25 +56,33 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info = ""
 
 		// Cool, what was the actual key pressed?
-		switch msg.Type {
-
-		// These keys should exit the program.
-		case tea.KeyCtrlC, tea.KeyEsc:
+		msgStr := msg.String()
+		switch {
+		case msgStr == "esc":
+			if !m.normalMode {
+				m.normalMode = true
+			}
+		case msgStr == "ctrl+c":
 			return m, tea.Quit
-
-		// The "up" and "k" keys move the cursor up
-		case tea.KeyUp:
+		case msgStr == "up":
 			if m.cursor > 0 {
 				m.cursor--
 			}
-
-		// The "down" and "j" keys move the cursor down
-		case tea.KeyDown:
+		case msgStr == "down":
 			if m.cursor < len(m.Articles)-1 {
 				m.cursor++
 			}
-
-		case tea.KeyEnter:
+		case msgStr == "j" && m.normalMode:
+			if m.cursor < len(m.Articles)-1 {
+				m.cursor++
+			}
+		case msgStr == "k" && m.normalMode:
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case (msgStr == "a" || msgStr == "i") && m.normalMode:
+			m.normalMode = !m.normalMode
+		case msgStr == "enter":
 			// TODO: on right-key press if we're at the last
 			// character of the input we should go to the
 			// article view.
@@ -88,12 +111,15 @@ func SearchUpdate(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Articles[m.cursor] = newArticle
 			m.content = lipgloss.NewStyle().Width(m.viewport.Width).Render(newArticle.Content)
 			m.viewport.SetContent(m.content)
-		case tea.KeyLeft, tea.KeyRight:
+		case msgStr == "left" || msgStr == "right":
 			m.textInput, cmd = m.textInput.Update(msg)
 			return m, cmd
 		default:
-			m.textInput, cmd = m.textInput.Update(msg)
-			return m, tea.Batch(cmd, m.queryArticlesCmd())
+			if !m.normalMode {
+				m.textInput, cmd = m.textInput.Update(msg)
+				m.cursor = 0
+				return m, tea.Batch(cmd, m.queryArticlesCmd())
+			}
 		}
 	case apiResponseMsg:
 		if msg.query != m.textInput.Value() {

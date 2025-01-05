@@ -54,6 +54,7 @@ type model struct {
 	viewport     viewport.Model
 	ready        bool
 	content      string
+	normalMode   bool
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -116,13 +117,14 @@ func initialModel(topic string) model {
 	vp.Style = lipgloss.NewStyle()
 
 	return model{
-		pageName:  "search",
-		client:    client,
-		textInput: ti,
-		Articles:  DefaultArticleMap,
-		content:   "Waiting for content...",
-		ready:     false,
-		viewport:  vp,
+		pageName:   "search",
+		client:     client,
+		textInput:  ti,
+		Articles:   DefaultArticleMap,
+		content:    "Waiting for content...",
+		ready:      false,
+		viewport:   vp,
+		normalMode: false,
 	}
 }
 

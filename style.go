@@ -3,7 +3,8 @@ package main
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	titleStyle = func() lipgloss.Style {
+	ACCENT_COLOR = "#04B575"
+	titleStyle   = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
 		b.Right = "├"
 		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
@@ -16,11 +17,11 @@ var (
 	}()
 
 	linkStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#04B575")).
+			Foreground(lipgloss.Color(ACCENT_COLOR)).
 			Render
 
 	listArticleStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#04B575")).
+				Foreground(lipgloss.Color(ACCENT_COLOR)).
 				Render
 	articleDescriptionStyle = lipgloss.NewStyle().
 				Bold(true).
